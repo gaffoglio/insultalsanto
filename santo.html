@@ -1,0 +1,197 @@
+<html>
+<head>
+	<style>
+		a.bottone {
+			background-color: lightgreen;
+			border-radius: 21px;
+			padding: 13px;
+			cursor: pointer;
+			border: 1px solid cadetblue;
+		}
+		.bestemmia_scelta {
+			color: #f00;
+		}
+	</style>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script type="text/javascript">
+		var insulti_m = [
+			'Porco',
+			'Cane',
+			'Ladro',
+			'Infame',
+			'Stronzo',
+			'Bastardo',
+			'Animale',
+			'Sciolto nell\'acido'
+		];
+		
+		var insulti_f = [
+			'Porca',
+			'Cagna',
+			'Ladra',
+			'Troia',
+			'Stronza',
+			'Bastarda',
+			'Mignotta',
+			'Vacca',
+			'Sciolta nell\'acido'
+		];
+		
+		var insulti_p = [
+			'Porci',
+			'Cani',
+			'Ladri',
+			'Bastardi',
+			'Stronzi',
+			'Infami',
+			'Ipocriti',
+			'Puzzolenti',
+			'Sciolti nell\'acido'
+		];
+		
+		get_insulti = function(){
+			var retLst = [];
+			
+			var santo = $('#santo').html();
+			santo = santo.toLowerCase();
+			
+			if(santo.indexOf('beata') >= 0 ||
+				santo.indexOf('santa') >= 0){
+				
+				retLst = insulti_f;
+			}
+			else if(santo.indexOf('santo') >= 0 ||
+				santo.indexOf('sant\'') >= 0 ||
+				santo.indexOf('beato') >= 0 ||
+				santo.indexOf('san ') >= 0){
+				
+				retLst = insulti_m;
+				
+			}
+			else {
+				retLst = insulti_p;
+			}
+			
+			return retLst;
+		}
+		
+		$( document ).ready(function() {
+			$.ajax({
+				url: "https://www.santodelgiorno.it/santi.json"
+			}).then(function(data) {
+				if(data.length > 0){
+					
+					var index = 0;
+					
+					var santo_trovato = false;
+					
+					while(!santo_trovato){
+						index = Math.random() * data.length;
+						index = Math.floor(index);
+						
+						if(data[index].urlimmagine){
+							santo_trovato = true;
+						}
+					}
+				
+					$('#santo').html(data[index].nome);
+					
+					if(data[0].urlimmagine){
+						$('#santo-img').attr('src', data[index].urlimmagine);
+					}
+				}
+				
+				$('#bestemmia').click(function(){
+					var insulti = get_insulti();
+					var n_insulti = Math.random() * insulti.length + 1;
+					n_insulti = Math.floor(n_insulti);
+					
+					var insulti_presi = [];
+				
+					for(let i = 0; i < n_insulti; i++) {
+						var insulto_trovato = false;
+					
+						while(!insulto_trovato){
+							var index_insulto = Math.random() * insulti.length;
+							index_insulto = Math.floor(index_insulto);
+							
+							if(!insulti_presi.includes(index_insulto)){
+								insulti_presi.push(index_insulto);
+								insulto_trovato = true;
+							}
+						}
+					}
+				
+					var insulti_scelti = [];
+					
+					var santo_inserito = false;
+					
+					for(let i = 0; i < insulti_presi.length;) {
+						
+						inserisci_santo_random = Math.random() * 10;
+						inserisci_santo_random = Math.floor(inserisci_santo_random);
+						
+						var inserisci_santo = inserisci_santo_random >= 5;
+						
+						if(!santo_inserito && inserisci_santo){
+							insulti_scelti.push($('#santo').html());
+							santo_inserito = true;
+						}
+						else{
+							insulti_scelti.push(insulti[insulti_presi[i]]);
+							i = i + 1;
+						}
+					}
+					
+					if(!santo_inserito) {
+						insulti_scelti.push($('#santo').html());
+					}
+					
+					var bestemmia_string = '';
+					
+					for(let i = 0; i < insulti_scelti.length; i++){
+						bestemmia_string = bestemmia_string + ' ' + insulti_scelti[i];
+					}
+					
+					bestemmia_string = bestemmia_string + '!!';
+					
+					$('#bestemmia_scelta').html(bestemmia_string);
+				});
+			});
+		});
+	</script>
+	<title>Insulta'l santo!</title>
+</head>
+<body>
+	<div class="container">
+		<div class="row" style="text-align: center;">
+			<div class="col-md-12">
+				<h1>SANTO DEL GIORNO:</h1>
+			</div>
+		</div>
+		<div class="row" style="text-align: center;">
+			<div class="col-md-12" >
+				<h2 id="santo"></h2>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 20px; text-align: center;">
+			<div class="col-md-12" >
+				<a id="bestemmia" class="bottone" >Bestemmialo</a>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 40px; text-align: center;">
+			<div class="col-md-12" >
+				<h3 id="bestemmia_scelta" class="bestemmia_scelta" ></h3>
+			</div>
+		</div>
+		<div class="row" style="text-align: center; margin-top: 40px;">
+			<div class="col-md-12" >
+				<img id="santo-img" />
+			</div>
+		</div>
+	</div>
+	
+	<img id="imgSanto">
+</body>
+</html>
