@@ -11,10 +11,29 @@
 		.bestemmia_scelta {
 			color: #f00;
 		}
+		img.audio-image {
+			width: 64px;
+			cursor: pointer;
+		}
+		.row.hidden {
+			display: none;
+		}
 	</style>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<script type="text/javascript">
+		let utter = new SpeechSynthesisUtterance();
+		utter.lang = 'it-IT';
+		utter.volume = 0.5;
+		
+		let bestemmia_string = '';
+		
+		let speech_finished = true;
+		
+		utter.onend = function() {
+			speech_finished = true;
+		}
+	
 		var insulti_m = [
 			'Porco',
 			'Cane',
@@ -23,7 +42,8 @@
 			'Stronzo',
 			'Bastardo',
 			'Animale',
-			'Sciolto nell\'acido'
+			'Sciolto nell\'acido',
+			'Succhia Cazzi'
 		];
 		
 		var insulti_f = [
@@ -35,7 +55,8 @@
 			'Bastarda',
 			'Mignotta',
 			'Vacca',
-			'Sciolta nell\'acido'
+			'Sciolta nell\'acido',
+			'Succhia Cazzi'
 		];
 		
 		var insulti_p = [
@@ -47,7 +68,8 @@
 			'Infami',
 			'Ipocriti',
 			'Puzzolenti',
-			'Sciolti nell\'acido'
+			'Sciolti nell\'acido',
+			'Succhia Cazzi'
 		];
 		
 		get_insulti = function(){
@@ -103,60 +125,68 @@
 				}
 				
 				$('#bestemmia').click(function(){
-					var insulti = get_insulti();
-					var n_insulti = Math.random() * insulti.length + 1;
-					n_insulti = Math.floor(n_insulti);
+					if(speech_finished){
+						var insulti = get_insulti();
+						var n_insulti = Math.random() * insulti.length + 1;
+						n_insulti = Math.floor(n_insulti);
+						
+						var insulti_presi = [];
 					
-					var insulti_presi = [];
-				
-					for(let i = 0; i < n_insulti; i++) {
-						var insulto_trovato = false;
-					
-						while(!insulto_trovato){
-							var index_insulto = Math.random() * insulti.length;
-							index_insulto = Math.floor(index_insulto);
-							
-							if(!insulti_presi.includes(index_insulto)){
-								insulti_presi.push(index_insulto);
-								insulto_trovato = true;
+						for(let i = 0; i < n_insulti; i++) {
+							var insulto_trovato = false;
+						
+							while(!insulto_trovato){
+								var index_insulto = Math.random() * insulti.length;
+								index_insulto = Math.floor(index_insulto);
+								
+								if(!insulti_presi.includes(index_insulto)){
+									insulti_presi.push(index_insulto);
+									insulto_trovato = true;
+								}
 							}
 						}
-					}
-				
-					var insulti_scelti = [];
 					
-					var santo_inserito = false;
-					
-					for(let i = 0; i < insulti_presi.length;) {
+						var insulti_scelti = [];
 						
-						inserisci_santo_random = Math.random() * 10;
-						inserisci_santo_random = Math.floor(inserisci_santo_random);
+						var santo_inserito = false;
 						
-						var inserisci_santo = inserisci_santo_random >= 5;
+						for(let i = 0; i < insulti_presi.length;) {
+							
+							inserisci_santo_random = Math.random() * 10;
+							inserisci_santo_random = Math.floor(inserisci_santo_random);
+							
+							var inserisci_santo = inserisci_santo_random >= 5;
+							
+							if(!santo_inserito && inserisci_santo){
+								insulti_scelti.push($('#santo').html());
+								santo_inserito = true;
+							}
+							else{
+								insulti_scelti.push(insulti[insulti_presi[i]]);
+								i = i + 1;
+							}
+						}
 						
-						if(!santo_inserito && inserisci_santo){
+						if(!santo_inserito) {
 							insulti_scelti.push($('#santo').html());
-							santo_inserito = true;
 						}
-						else{
-							insulti_scelti.push(insulti[insulti_presi[i]]);
-							i = i + 1;
+						
+						for(let i = 0; i < insulti_scelti.length; i++){
+							bestemmia_string = bestemmia_string + ' ' + insulti_scelti[i];
 						}
+						
+						bestemmia_string = bestemmia_string + '!!';
+						
+						$('#bestemmia_scelta').html(bestemmia_string);
+						
+						$('.hidden').removeClass('hidden');
 					}
-					
-					if(!santo_inserito) {
-						insulti_scelti.push($('#santo').html());
-					}
-					
-					var bestemmia_string = '';
-					
-					for(let i = 0; i < insulti_scelti.length; i++){
-						bestemmia_string = bestemmia_string + ' ' + insulti_scelti[i];
-					}
-					
-					bestemmia_string = bestemmia_string + '!!';
-					
-					$('#bestemmia_scelta').html(bestemmia_string);
+				});
+				
+				$('#play').click(function(){
+					speech_finished = false;
+					utter.text = bestemmia_string;
+					window.speechSynthesis.speak(utter);
 				});
 			});
 		});
@@ -180,9 +210,14 @@
 				<a id="bestemmia" class="bottone" >Bestemmialo</a>
 			</div>
 		</div>
-		<div class="row" style="margin-top: 40px; text-align: center;">
+		<div class="row hidden" style="margin-top: 40px; text-align: center;">
 			<div class="col-md-12" >
 				<h3 id="bestemmia_scelta" class="bestemmia_scelta" ></h3>
+			</div>
+		</div>
+		<div class="row hidden" style="margin-top: 10px; text-align: center;" >
+			<div class="col-md-12">
+				<img id="play" class="audio-image" src="./audio.png" />
 			</div>
 		</div>
 		<div class="row" style="text-align: center; margin-top: 40px;">
